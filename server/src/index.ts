@@ -6,6 +6,9 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import searchRouter from './routes/search.js';
 import mapRouter from './routes/map.js';
+import fhirRouter from './routes/fhir.js';
+import authRouter from './routes/auth.js';
+import { protect } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
@@ -20,10 +23,10 @@ async function connectDB(): Promise<void> {
   }
 }
 
-// ── Security ────────────────────────────────────────────────────────────────
+// ── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// ── CORS ────────────────────────────────────────────────────────────────────
+// ── CORS ──────────────────────────────────────────────────────────────────────
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
@@ -33,43 +36,45 @@ app.use(
   })
 );
 
-// ── Rate Limiting ───────────────────────────────────────────────────────────
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,                  // limit each IP to 100 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
 });
 app.use(limiter);
 
-// ── Body Parsing ────────────────────────────────────────────────────────────
+// ── Body Parsing ──────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ── Routes ──────────────────────────────────────────────────────────────────
+// ── Routes ────────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
-import fhirRouter from './routes/fhir.js';
-// and below the other routes:
-app.use('/api/fhir', fhirRouter);
 
-app.use('/api/search', searchRouter);
-app.use('/api/map', mapRouter);
+// Public routes
+app.use('/api/v1/auth', authRouter);
 
-// ── 404 Handler ─────────────────────────────────────────────────────────────
+// Protected routes
+app.use('/api/v1/search', protect, searchRouter);
+app.use('/api/v1/map', protect, mapRouter);
+app.use('/api/v1/fhir', protect, fhirRouter);
+
+// ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// ── Global Error Handler ─────────────────────────────────────────────────────
+// ── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ── Start Server ─────────────────────────────────────────────────────────────
+// ── Start Server ──────────────────────────────────────────────────────────────
 await connectDB();
 app.listen(PORT, () => {
   console.log(`✅  AyushBridge server running on http://localhost:${PORT}`);
