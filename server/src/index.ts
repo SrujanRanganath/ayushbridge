@@ -51,6 +51,9 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
+import fhirRouter from './routes/fhir.js';
+// and below the other routes:
+app.use('/api/fhir', fhirRouter);
 
 app.use('/api/search', searchRouter);
 app.use('/api/map', mapRouter);
