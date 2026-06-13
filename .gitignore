@@ -34,3 +34,4 @@ Thumbs.db
 
 # Data files (CSVs may contain sensitive data)
 data/*.csv
+logs/

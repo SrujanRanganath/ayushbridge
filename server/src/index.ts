@@ -9,6 +9,7 @@ import mapRouter from './routes/map.js';
 import fhirRouter from './routes/fhir.js';
 import authRouter from './routes/auth.js';
 import { protect } from './middleware/auth.js';
+import logger from './utils/logger.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
@@ -16,14 +17,14 @@ const PORT = process.env.PORT ?? 5000;
 async function connectDB(): Promise<void> {
   try {
     await mongoose.connect(process.env.MONGODB_URI!);
-    console.log('✅ MongoDB connected');
+    logger.info('✅ MongoDB connected');
   } catch (error) {
-    console.error(error);
+    logger.error('MongoDB connection failed', error);
     process.exit(1);
   }
 }
 
-// ── Security ─────────────────────────────────────────────────────────────────
+// ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet());
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
@@ -70,14 +71,14 @@ app.use((_req: Request, res: Response) => {
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 // ── Start Server ──────────────────────────────────────────────────────────────
 await connectDB();
 app.listen(PORT, () => {
-  console.log(`✅  AyushBridge server running on http://localhost:${PORT}`);
+  logger.info(`✅ AyushBridge server running on http://localhost:${PORT}`);
 });
 
 export default app;
