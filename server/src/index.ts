@@ -1,3 +1,4 @@
+import enrichRouter from './routes/enrich.js';
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import express, { Request, Response, NextFunction } from 'express';
@@ -52,6 +53,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/api/v1/enrich', protect, enrichRouter);
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
