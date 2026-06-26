@@ -1,12 +1,41 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import RootLayout from './layouts/RootLayout';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import SearchPage from './pages/SearchPage';
+import MappingPage from './pages/MappingPage';
+import BundleViewerPage from './pages/BundleViewerPage';
+import DashboardPage from './pages/DashboardPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-cyan-950 flex flex-col items-center justify-center text-white">
-      <h1 className="text-5xl font-bold tracking-tight">AyushBridge</h1>
-      <p className="mt-4 text-teal-300 text-lg">
-        Bridging AYUSH with modern healthcare data
-      </p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<RootLayout />}>
+          {/* Main Redirect to Dashboard */}
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="mapping" element={<MappingPage />} />
+            <Route path="bundle" element={<BundleViewerPage />} />
+          </Route>
+          
+          {/* Public Routes */}
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          
+          {/* Fallback Catch-All Route */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
 export default App;
+
+
